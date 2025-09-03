@@ -764,7 +764,7 @@
             padding: 30px;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
-            max-width: 400px;
+            max-width: 500px;
             width: 90%;
             text-align: center;
             transform: translateY(-20px); /* 初始向上偏移 */
@@ -799,6 +799,14 @@
             outline: none;
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
+        }
+
+        /* 模态框消息段落样式 */
+        #modalMessageP {
+            white-space: pre-wrap; /* 保留空白符和换行符，实现分点分段 */
+            line-height: 1.8;      /* 调整行距，例如设置为1.8倍字高 */
+            text-align: left;      /* 将文本左对齐，使分点列表更整洁 */
+            margin-bottom: 15px;   /* 增加与下方元素的间距 */
         }
 
         /* 模态框按钮组样式 */
@@ -2858,7 +2866,7 @@
                 const wordCount = plainText.replace(/\s/g, '').length;
                 const readMinutes = Math.max(1, Math.ceil(wordCount / 300));
                 const wordCountInfo = document.createElement('div');
-                wordCountInfo.style.cssText = 'color: var(--light-text); font-size: 13px; margin-bottom: 10px;';
+                wordCountInfo.style.cssText = 'color: var(--light-text); font-size: 13px; margin-bottom: 10px; text-align: right;';
                 wordCountInfo.textContent = `字数：${wordCount}，预计阅读时间：${readMinutes}分钟`;
                 articleDetail.append(articleHeader, description, wordCountInfo, content);
             } else {
@@ -4903,7 +4911,9 @@
             // Exit sorting mode
             els.exitSortingModeBtn.onclick = disableCategorySorting;
             // Tip button
-            els.tipBtn.onclick = () => showGenericModal('提示', '1.长按“作品分类”，可调整文章分类的顺序。2.推荐保持透明化模式，非透明化模式多用于测试bug。',  false, '', () => {}, () => {});
+            els.tipBtn.onclick = () => showGenericModal('提示', '1.长按“作品分类”，可调整文章分类的顺序。\n2.推荐保持透明化模式，非透明化模式多用于测试bug。\n3.评论区附录部分由于无法塞表情包进去，会采用（等简单符号替代。\n4.简介以？或（结尾的为自评简介；否则为原文简介（该类型可能存在微量排版变化）',  false, '', () => {}, () => {});
+// 隐藏取消按钮
+els.cancelNewCategoryBtn.style.display = 'none';
             // 隐藏取消按钮
             els.cancelNewCategoryBtn.style.display = 'none';
             // Transparency toggle
