@@ -1205,23 +1205,32 @@
         .content-editor-div b,
         .content-editor-div strong {
             font-weight: bold;
+            font-family: inherit !important; /* 确保字体继承 */
         }
 
         /* 内容编辑器中的斜体样式 */
         .content-editor-div i,
         .content-editor-div em {
             font-style: italic;
+            font-family: inherit !important; /* 确保字体继承 */
         }
 
         /* 内容编辑器中的下划线样式 */
         .content-editor-div u {
             text-decoration: underline;
+            font-family: inherit !important; /* 确保字体继承 */
         }
 
         /* 内容编辑器中的删除线样式 */
         .content-editor-div s,
         .content-editor-div strike {
             text-decoration: line-through;
+            font-family: inherit !important; /* 确保字体继承 */
+        }
+
+        /* 新增：确保所有 span 标签（包括用于格式化的 span）继承字体 */
+        .content-editor-div span {
+            font-family: inherit;
         }
 
         /* 内容编辑器滚动条样式（Webkit 浏览器） */
@@ -1839,6 +1848,43 @@
             opacity: 0.6;
         }
         body.transparent-mode .btn-scroll-to-top:hover {
+            background-color: transparent !important;
+            opacity: 1;
+            color: var(--primary-color);
+        }
+        /* Scroll to Bottom button style */
+        .btn-scroll-to-bottom {
+            background-color: transparent !important; /* 强制背景透明 */
+            border: none !important; /* 强制无边框 */
+            color: var(--light-text); /* 使用浅色文本颜色，以便在不同背景下可见 */
+            box-shadow: none !important; /* 移除阴影 */
+            opacity: 0.6; /* 默认透明度，与透明模式下其他按钮保持一致 */
+            transition: opacity 0.3s; /* 添加过渡效果 */
+        }
+        .btn-scroll-to-bottom:hover {
+            background-color: transparent !important; /* 悬停时也保持透明 */
+            opacity: 1; /* 悬停时完全不透明 */
+            color: var(--primary-color); /* 悬停时文本颜色变为主题主色 */
+        }
+        /* 浅色模式下的回到底部按钮 */
+        body.light-mode .btn-scroll-to-bottom {
+            background-color: transparent !important;
+            border: none !important;
+            color: var(--light-text); /* 浅色模式下也使用浅色文本 */
+        }
+        body.light-mode .btn-scroll-to-bottom:hover {
+            background-color: transparent !important;
+            opacity: 1;
+            color: var(--primary-color);
+        }
+        /* 确保在透明模式下也正确应用 */
+        body.transparent-mode .btn-scroll-to-bottom {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            opacity: 0.6;
+        }
+        body.transparent-mode .btn-scroll-to-bottom:hover {
             background-color: transparent !important;
             opacity: 1;
             color: var(--primary-color);
@@ -2790,7 +2836,7 @@
                     showPasswordPrompt();
                 };
             } else {
-                encryptDecryptButton.textContent = '🔒加密';
+                encryptDecryptButton.textContent = '🔒';
                 encryptDecryptButton.title = '加密文章'; 
                 encryptDecryptButton.onclick = () => {
                     articleToProcess = article;
@@ -2815,8 +2861,17 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
+            // 回到底部按钮 (NEW)
+            const scrollToBottomButton = document.createElement('button');
+            scrollToBottomButton.className = 'btn btn-scroll-to-bottom'; // Use a new class
+            scrollToBottomButton.textContent = '🔻';
+            scrollToBottomButton.title = '跳到底部';
+            scrollToBottomButton.onclick = () => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            };
+
             // 按钮顺序：返回、编辑、加密/解密、删除、回到顶部
-            els.editActionsFixedSidebar.append(backButton, editButton, encryptDecryptButton, deleteButton, scrollToTopButton);
+            els.editActionsFixedSidebar.append(scrollToBottomButton, backButton, editButton, encryptDecryptButton, deleteButton, scrollToTopButton);
 
             // 主内容区域显示文章详情
             els.articlesContainer.innerHTML = '';
@@ -2938,9 +2993,18 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
-            els.editActionsFixedSidebar.append(backButton, decryptButton, deleteButton, scrollToTopButton);
+            // 回到底部按钮 (NEW)
+            const scrollToBottomButton = document.createElement('button');
+            scrollToBottomButton.className = 'btn btn-scroll-to-bottom'; // Use a new class
+            scrollToBottomButton.textContent = '🔻';
+            scrollToBottomButton.title = '跳到底部';
+            scrollToBottomButton.onclick = () => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            };
 
-            // 修复：主内容区域显示加密文章占位符
+            els.editActionsFixedSidebar.append(scrollToBottomButton, backButton, decryptButton, deleteButton, scrollToTopButton);
+
+            // 主内容区域显示加密文章占位符
             els.articlesContainer.innerHTML = '';
             const articleDetail = document.createElement('div');
             articleDetail.className = 'article-detail-container';
@@ -3528,79 +3592,12 @@
                     applyOrClearBackgroundColor(editorDiv, colorMap[command]);
                 } else if (command === 'clear-bgcolor') { // 清除背景色
                     applyOrClearBackgroundColor(editorDiv, '');
-                } else if (command.startsWith('fontname-')) { // 处理字体
-                    const fontName = command.replace('fontname-', '');
-                    const selection = window.getSelection();
-                    if (!selection.rangeCount) return; // 没有选区则返回
+            } else if (command.startsWith('fontname-')) { // 处理字体
+                const fontName = command.replace('fontname-', '');
+                // 直接使用 execCommand('fontName')，在 styleWithCSS 模式下会插入带 font-family 的 span
+                document.execCommand('fontName', false, fontName); 
+            }
 
-                    const originalRange = selection.getRangeAt(0); // 保存原始选区
-
-                    // 辅助函数：将样式应用到节点
-                    const applyFontToNode = (node, font) => {
-                        if (node.nodeType === Node.TEXT_NODE) {
-                            // 如果文本节点已经在带有 font-family 的 span 中，更新它
-                            let parentSpan = node.parentNode;
-                            if (parentSpan && parentSpan.tagName && parentSpan.tagName.toLowerCase() === 'span' && parentSpan.style.fontFamily) {
-                                parentSpan.style.fontFamily = font;
-                            } else {
-                                // 否则，创建新的 span 包装文本节点
-                                const newSpan = document.createElement('span');
-                                newSpan.style.fontFamily = font;
-                                node.parentNode.insertBefore(newSpan, node);
-                                newSpan.appendChild(node);
-                            }
-                        } else if (node.nodeType === Node.ELEMENT_NODE) {
-                            // 仅对特定内联元素或直接包含文本的元素应用样式
-                            const tagName = node.tagName.toLowerCase();
-                            if (['span', 'b', 'i', 'u', 's', 'em', 'strong'].includes(tagName) ||
-                                (node.childNodes.length === 1 && node.firstChild.nodeType === Node.TEXT_NODE)) {
-                                node.style.fontFamily = font;
-                            }
-                        }
-                    };
-
-                    // 如果选区是折叠的（即光标），则插入一个带有样式的空 span
-                    if (originalRange.collapsed) {
-                        const span = document.createElement('span');
-                        span.style.fontFamily = fontName;
-                        originalRange.insertNode(span);
-                        // 将光标设置到新创建的 span 内部
-                        const newRange = document.createRange();
-                        newRange.setStart(span, 0);
-                        newRange.setEnd(span, 0);
-                        selection.removeAllRanges();
-                        selection.addRange(newRange);
-                        return;
-                    }
-
-                    // 对于非折叠选区，遍历选区内的所有节点并应用样式
-                    const iterator = document.createNodeIterator(
-                        editorDiv,
-                        NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT,
-                        {
-                            // 过滤函数，只接受与选区相交的节点
-                            acceptNode: function(node) {
-                                if (originalRange.intersectsNode(node)) {
-                                    return NodeFilter.FILTER_ACCEPT;
-                                }
-                                return NodeFilter.FILTER_SKIP;
-                            }
-                        }
-                    );
-
-                    let currentNode;
-                    while ((currentNode = iterator.nextNode())) {
-                        // 确保只处理实际在选区内的部分
-                        // 对于文本节点，可能需要更复杂的逻辑来处理部分选择
-                        // 但对于整个节点被选择或元素节点，直接应用样式
-                        applyFontToNode(currentNode, fontName);
-                    }
-
-                    // 恢复原始选区，以保持用户体验
-                    selection.removeAllRanges();
-                    selection.addRange(originalRange);
-
-                }
                 else {
                     document.execCommand(command, false, null); // 执行通用格式化命令
                 }
@@ -4115,7 +4112,7 @@
             const clearSwatch = document.createElement('button');
             clearSwatch.type = 'button';
             clearSwatch.className = 'color-swatch clear-color-swatch';
-            clearSwatch.textContent = '清';
+            clearSwatch.textContent = '无';
             clearSwatch.title = '清除背景色';
             clearSwatch.dataset.command = 'clear-bgcolor';
             clearSwatch.onclick = () => {
@@ -4297,7 +4294,16 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
-            els.editActionsFixedSidebar.append(saveButton, cancelButton, backButton, scrollToTopButton);
+            // 回到底部按钮 (NEW)
+            const scrollToBottomButton = document.createElement('button');
+            scrollToBottomButton.className = 'btn btn-scroll-to-bottom'; // Use a new class
+            scrollToBottomButton.textContent = '🔻';
+            scrollToBottomButton.title = '跳到底部';
+            scrollToBottomButton.onclick = () => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            };
+
+            els.editActionsFixedSidebar.append(scrollToBottomButton, saveButton, cancelButton, backButton, scrollToTopButton);
 
 
             // editForm.appendChild(buttonContainer); // Removed this line
